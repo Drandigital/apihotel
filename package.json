@@ -1,14 +1,8 @@
 {
-  "name": "PROYECTO SPRINT-1",
+  "name": "proyecto-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "Proyecto en el cual podrás como administrador de un restaurante, agregar, modificar o quitar productos, ver los pedidos de tus clientes y modificar sus estados para organizarlos conforme se vayan preparando y como usuario podrás ver los productos disponibles, crear una cuenta, agregar o quitar productos de tu pedido, elegir medios de pago, especificar la dirección de entrega de tu pedido .",
   "main": "index.js",
-  "scripts": {
-    "dev": "nodemon src/"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
@@ -16,5 +10,18 @@
     "lodash": "^4.17.21",
     "swagger-jsdoc": "^6.1.0",
     "swagger-ui-express": "^4.1.6"
-  }
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/drannath11/proyecto-sprint-1.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://gitlab.com/drannath11/proyecto-sprint-1/issues"
+  },
+  "homepage": "https://gitlab.com/drannath11/proyecto-sprint-1#readme"
 }
