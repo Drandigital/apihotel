@@ -1,10 +1,10 @@
-# PRO# Sprint project (Api restaurante)
+# Sprint project (Api restaurante)
 
 Proyecto en el cual podrás como administrador de un restaurante, agregar, modificar o quitar productos, ver los pedidos de tus clientes y modificar sus estados para organizarlos conforme se vayan preparando y como usuario podrás ver los productos disponibles, crear una cuenta, agregar o quitar productos de tu pedido, elegir medios de pago, especificar la dirección de entrega de tu pedido .
 
 ## Installation
 
- Descarga el repositorio en el siguiente link [repositorio](https://gitlab.com/santiagovalenciav29/sprint-project-acamica) e instala el package como se muestra a continuación.
+ Descarga el repositorio en el siguiente link [repositorio](https://gitlab.com/drannath11/proyecto-sprint-1) e instala el package como se muestra a continuación.
 
 ```bash
 npm install
@@ -17,7 +17,7 @@ npm install
 ```bash
 node src/index.js
 ```
-2. Entra a la documentación de swagger en el siguiente link [documentacion](http://localhost:5000/api-docs/)
+2. Entra a la documentación de swagger en el siguiente link [documentacion](http://localhost:3000/api-docs/)
 
 3. El usuario administrador es tiago y su clave es 1234 con este usuario tienes acceso a todas las rutas de la API, y el usuario de prueba ese Eve y su clave 5678 por si no deseas crear un cuenta propia. (Es importante en el autorize loguearse con el usuario con el que se va a trabajar).
 ### Rutas habilitadas para el usuario
