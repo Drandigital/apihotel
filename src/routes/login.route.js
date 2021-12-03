@@ -11,7 +11,7 @@ const {obtenerUsuarios, agregarUsuario} = require('../models/usuario.model');
  * /login:
  *      post:
  *          summary: Digite correctamente sus datos
- *          tags: [Login]
+ *          tags: [login]
  *          requestBody:
  *              required: true
  *              content:
@@ -56,7 +56,7 @@ const {obtenerUsuarios, agregarUsuario} = require('../models/usuario.model');
  *  post:
  *      summary: Crea un usuario en el sistema
  *       
- *      tags: [Registro]
+ *      tags: [login]
  *      requestBody:
  *          required: true
  *          content:

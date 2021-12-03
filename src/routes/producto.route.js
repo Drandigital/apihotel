@@ -4,6 +4,23 @@ const router = express.Router();
 const { obtenerProducto, agregarProducto, eliminarProducto } = require('../models/producto.model.js');
 const { obtenerUsuarios} = require('../models/usuario.model.js')
 
+/**
+ * @swagger
+ * /producto:
+ *  get:
+ *      summary: Obtener todos los Productos
+ *      tags: [Productos]
+ *      responses:
+ *          200:
+ *              description: Lista de Productos
+ *              content:
+ *                  application/json:
+ *                      schema:
+ *                          type: array
+ *                          items:
+ *                              $ref: '#/components/schemas/Producto'
+ */
+
 router.get('/', (req,res) => {
     res.json(obtenerProducto());
 });
@@ -19,6 +36,34 @@ router.use('/', (req, res, next) => {
     };
 });
 
+/**
+ * @swagger
+ * /producto:
+ *    post:
+ *          summary: Agregar Producto
+ *          tags: [Productos]
+ *          requestBody:
+ *              required: true
+ *              content:
+ *                  application/json:
+ *                     schema:
+ *                          $ref: '#/components/schemas/agregarProducto'
+ *                     type: 
+ *                          Array             
+ *          responses:
+ *                  '200':
+ *                      description: Producto agregado
+ *                      content:
+ *                          'aplication/json': {}
+ *                          
+ *
+ *                  400:
+ *                      description: acceso invalido
+ *                      content:
+ *                          'aplication/json': {}
+ *                          
+ */
+
 // Agregar un nuevo producto
 router.post('/', (req, res) => {
    
@@ -33,6 +78,34 @@ router.post('/', (req, res) => {
     }
 
 });
+
+/**
+ * @swagger
+ * /producto/{admin}:
+ *    put:
+ *          summary: Editar Producto
+ *          tags: [Productos]
+ *          requestBody:
+ *              required: true
+ *              content:
+ *                  application/json:
+ *                     schema:
+ *                          $ref: '#/components/schemas/editarProducto'
+ *                     type: 
+ *                          Array             
+ *          responses:
+ *                  '200':
+ *                      description: Producto Editado
+ *                      content:
+ *                          'aplication/json': {}
+ *                          
+ *
+ *                  400:
+ *                      description: acceso invalido
+ *                      content:
+ *                          'aplication/json': {}
+ *                          
+ */
 
 router.put('/:admin', (req,res) => {
     const { id, Name, price } = req.body;
@@ -51,6 +124,36 @@ router.put('/:admin', (req,res) => {
     }
 });
 
+
+/**
+ * @swagger
+ * /producto/{id}:
+ *    delete:
+ *          summary: Eliminar Producto
+ *          tags: [Productos]
+ *          requestBody:
+ *              required: true
+ *              content:
+ *                  application/json:
+ *                     schema:
+ *                          $ref: '#/components/schemas/Producto'
+ *                     type: 
+ *                          Array             
+ *          responses:
+ *                  '200':
+ *                      description: Producto Eliminado
+ *                      content:
+ *                          'aplication/json': {}
+ *                          
+ *
+ *                  400:
+ *                      description: acceso invalido
+ *                      content:
+ *                          'aplication/json': {}
+ *                          
+ */
+
+
 router.delete('/:id', (req, res) => {
     const { id } = req.body;
     const eliminaProducto = obtenerProducto().findIndex(u => u.id === id);
@@ -62,5 +165,72 @@ router.delete('/:id', (req, res) => {
     else res.status(404).json('Producto no encontrado');
 
 });
+
+
+
+/**
+ * @swagger
+ * tags:
+ *  name: login
+ *  description: Sección de productos del sistema
+ * components:
+ *  schemas:
+ *      Producto:
+ *          type: object
+ *          required:
+ *              -id
+ *              -Name 
+ *          properties:             
+ *              id:
+ *                  type: integer
+ *                  description: Id del producto
+ *              Name:
+ *                  type: string
+ *                  description: Nombre del producto
+ *          example:
+ *              id: 002
+ *              Name: Pizza
+ *      agregarProducto: 
+ *          type: object
+ *          required: 
+ *              -Name       
+ *              -price  
+ *          properties:
+ *              Name:
+ *                  type: string
+ *                  description: Nombre del producto
+ *              price : 
+ *                  type: integer
+ *                  description: Precio del producto
+ *          example:
+ *              Name: carne
+ *              price : 10000
+ *      editarProducto: 
+ *          type: object
+ *          required: 
+ *              -id
+ *              -Name       
+ *              -price     
+ *          properties:
+ *              id:
+ *                  type: integer
+ *                  description: Id del producto  
+ *              Name:
+ *                  type: string
+ *                  description: Nombre del producto
+ 
+ *              price : 
+ *                  type: integer
+ *                  description: Precio del producto
+ *          example:
+ *              id: 003
+ *              Name: Burguer2
+ *              price : 50000
+ * 
+ * 
+ * 
+ */
+
+
 
 module.exports = router;
