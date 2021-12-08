@@ -1,105 +1,125 @@
-
-const  pedidos = [
-          
+const pedidos = [
     {
-          idUser: 3,
-          idPedido: 1,
-          estado: "Pendiente",
-          direccionPedido: "Cartagena",
-          cel: "3156770183",
-          medioDePago: "Efectivo",
-          pedidos: [] 
-
-    },
-
-    {
-        idUser: 2,
-        idPedido: 2,
-        username: "Natan",
+        idUsuario: 3,
+        idPedido: 0,
         estado: "Pendiente",
-        direccionPedido: "Cartagena",
-        cel: "3156770183",
-        medioDePago: "Efectivo",
-        pedidos: [
-
+        direccion: "Cartagena",
+        medioPago: "Tarjeta de Credito",
+        pedido: [
             {
-                Name: "Cocacola",
-                pedidos: 2
+                nombre: "Lomo",
+                cantidad: 2
+            }
+        ]
+    },
+    {
+        idUsuario: 3,
+        idPedido: 1,
+        estado: "Confirmado",
+        direccion: "Cartagena",
+        medioPago: "Efectivo",
+        pedido: [
+            {
+                nombre: "Hamburguesa Doble",
+                cantidad: 1
+            }
+        ]
+    },
+    {
+        idUsuario: 3,
+        idPedido: 2,
+        estado: "En Preparación",
+        direccion: "Cartagena",
+        medioPago: "Efectivo",
+        pedido: [
+            {
+                nombre: "Hamburguesa Doble",
+                cantidad: 1
             },
             { 
-                Name: "Burguer",
-                pedidos: 2
+                nombre: "Postobon manzana",
+                cantidad: 2
+            }  
+        ]
+    },
+    {
+        idUsuario: 3,
+        idPedido: 3,
+        estado: "Enviado",
+        direccion: "Cartagena",
+        medioPago: "Tarjeta de Credito",
+        pedido: [
+            {
+                nombre: "Carne",
+                cantidad: 4
             }
-
-
-
-        ] 
-
-  }
-
-];
-
-const estados =[
-    
-    {
-        id: 1,
-        estado: "Pendiente"
+        ]
     },
     {
-        id: 2,
-        estado: "Confirmado"
-    },
-    {
-        id: 3,
-        estado: "En preparación"
-    },
-    {
-        id: 4,
-        estado: "Enviado"
-    },
-    {
-        id: 5,
-        estado: "Entregado"
+        idUsuario: 1,
+        idPedido: 4,
+        estado: "Entregado",
+        direccion: "Cartagena",
+        medioPago: "Efectivo",
+        pedido: [
+            {
+                nombre: "Hamburguesa Doble",
+                cantidad: 1
+            }
+        ]
     }
-
-
-
-
-
 ];
-
 
 const obtenerPedidos = () => {
     return pedidos;
 }
 
-const agregarPedido = (pedidoNuevo) => {
-    pedidos.push(pedidoNuevo);
+const agregarPedido = (idpedidou, idpedido, products, dir, medio) => {
+    pedido = 
+        {
+            idUsuario: idpedidou,
+            idPedido: idpedido,
+            estado: "Pendiente",
+            direccion: dir,
+            medioPago: medio,
+            pedido: products
+        };
+
+    pedidos.push(pedido);
 }
 
+const agregarProducto = (indexPedido, producto) => {
 
+    pedidos[indexPedido].pedido.forEach((product, i) => {
+        if(product.nombre === producto.nombre){
+            pedidos[indexPedido].pedido[i].cantidad += producto.cantidad;
+        }
+    });
+    pedidos[indexPedido].pedido.push(producto);
+}
 
 const obtenerPedidosUsuario = (idPedidoUser) => {
     let resultado = []; 
     for (const pedido of pedidos) {
-        if(pedido.idPedidosUsuario === idPedidoUser) resultado.push(pedido);
+        if(pedido.idUsuario === idPedidoUser) resultado.push(pedido);
     }
     if(resultado.length > 0) return resultado;
     else  return "El usuario no tiene pedidos";
 } 
 
-const pruductoNuevoPedido = (idPedido, producto) => {
-
-    pedidos[idPedido].pedidos.forEach((product, i) => {
-        if(product.Name === producto.Name){
-            pedidos[idPedido].pedidos[i].pedidos += producto.pedidos;
-        }
-    });
-    pedidos[idPedido].pedidos.push(producto);
+const cambiarEstadoPedido = (status, index) => {
+    pedidos[index].estado = status;
 }
 
+const obtenerProductosPedido = (indexPedido) => {
+    return pedidos[indexPedido].pedido;
+}
 
-const cambiarEstado = (estado, id) => {};
+const eliminarProductoPedido = (indexPedido, indexProducto) => {
+    pedidos[indexPedido].pedido.splice(indexProducto, 1);
+}
 
-
-module.exports = {obtenerPedidos, obtenerPedidosUsuario,agregarPedido, pruductoNuevoPedido};
+const editarCantProducto = (indexPedido, indexProducto, cantidad) => {
+    pedidos[indexPedido].pedido[indexProducto].cantidad = cantidad;
+}
+module.exports = { obtenerPedidos, agregarProducto, editarCantProducto, cambiarEstadoPedido, obtenerPedidosUsuario, agregarPedido, eliminarProductoPedido, obtenerProductosPedido};

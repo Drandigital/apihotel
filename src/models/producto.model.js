@@ -11,9 +11,26 @@ const productos = [
     },
     {
         id : 003,
-        Name: "Burguer",
+        Name: "Hamburguesa Doble",
         price:30000
     },
+    {
+        id : 005,
+        Name: "Carne",
+        price:30000
+    },
+    {
+        id : 004,
+        Name: "Postobon manzana",
+        price:30000
+    },
+    {
+        id : 006,
+        Name: "Lomo",
+        price:30000
+    }
+
+    
 
 ];
 

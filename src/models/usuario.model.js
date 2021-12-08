@@ -1,3 +1,5 @@
+const _ = require('lodash');
+
 const usuarios = [
     {
         id: 1,
@@ -42,7 +44,9 @@ const eliminarUsuarios = (eliminarUsuario) => {
     usuarios.splice(eliminarUsuario, 1, 'vacio');
 }
 
+const verificarAdmin = (User) => {
+    return usuarios[User].isAdmin === true ? true : false; 
+}
 
 
-
-module.exports = {obtenerUsuarios, agregarUsuario,eliminarUsuarios}
+module.exports = {obtenerUsuarios, agregarUsuario,eliminarUsuarios,verificarAdmin}

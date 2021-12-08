@@ -1,16 +1,13 @@
 const express = require('express');
-const router = express.Router();
-const {obtenerUsuarios} = require('../models/usuario.model');
-const {obtenerProducto} = require('../models/producto.model');
-const {pruductoNuevoPedido,obtenerPedidosUsuario, agregarPedido, obtenerPedidos,} = require('../models/pedido.model');
-const {obtenerMedioPago} = require('../models/medioPago.model')
+const router = express();
+const _ = require('lodash');
+const autenticarAdministrador = require('../middlewares/probarAdmin.middlewares');
 
-// Obtener todos los productos para meter en pedidos
-
-
-router.get('/productos',(req,res) => {
-    res.status(200).json(obtenerProducto())
-});
+const { obtenerUsuarios } = require('../models/usuario.model');
+const { obtenerPedidosUsuario, agregarProducto, editarCantProducto, agregarPedido, eliminarProductoPedido, obtenerProductosPedido, obtenerPedidos, cambiarEstadoPedido } = require('../models/pedido.model');
+const { obtenerProducto } = require('../models/producto.model');
+const { obtenerMedioPago } = require('../models/medioPago.model')
+router.use(express.json());
 
 /** 
  * @swagger
@@ -32,53 +29,51 @@ router.get('/productos',(req,res) => {
  *  
  */
 
-// Agregar Pedido
 router.post('/', (req,res) => {
-    const { username, pedidos, nombreMedioPago } = req.body;
+    const { username, pedido, MedioPago } = req.body;
     const user = obtenerUsuarios().find(u => u.username === username);
-    const products = pedidos;
+    const products = pedido;
     let contador = 0; 
     let aux = 0;
     
     
     products.forEach((product) => {
-        obtenerProductos().forEach((producto) => {
-            if(product.nombre === producto.nombre) contador += 1;
+        obtenerProducto().forEach((producto) => {
+            if(product.nombre === producto.Name) contador += 1;
         });
     });
     
-    obtenerMediosPago().forEach( medio => {
-        if(medio.nombre === nombreMedioPago)  aux += 1;
+    obtenerMedioPago().forEach( medio => {
+        if(medio.medio === MedioPago)  aux += 1;
     });
 
     if(contador === 0) res.status(400).json(`Al menos 1 producto de los ingresados no existe en el restaurante`); 
     else{
         if(aux !== 0){
-            if(!user) return res.status(400).json(`No existe el usuario ${usuario}`);
+            if(!user) return res.status(400).json(`No existe el usuario`);
             else{
                 let resultado = false;
                 let idPedido = 0;
                 let cont = 0;
                 do{
-                    idPedido = obtenerPedidosUsuario(user.idPedidoUser).length + 1 + cont; 
-                    let verPedido = obtenerPedidos().find(u => u.idPedidosUsuario === user.idPedidoUser && u.idPedido === idPedido );
+                    idPedido = obtenerPedidosUsuario(user.id).length + 1 + cont; 
+                    let verPedido = obtenerPedidos().find(u => u.idUsuario === user.id && u.idPedido === idPedido );
                     resultado = verPedido === undefined ? true : false;
                     if(resultado === false) cont += 1;
                 }
                 while(resultado === false);
                 
-                agregarPedido( user.idPedidoUser, idPedido, pedidos, user.direccion, nombreMedioPago);
+                agregarPedido( user.id, idPedido, pedido, user.direccion, MedioPago);
                 res.json(`Pedido creado exitosamente al usuario: ${user.username}`);
             }
-        }else res.status(400).json(`Este medio de Pago: ${nombreMedioPago} no existe en la base de datos`);
+        }else res.status(400).json(`Este medio de Pago: ${MedioPago} no existe en la base de datos`);
     }
 });
 
 
-
 /**   
  * @swagger
- * /pedidos:
+ * /pedidos/{username}/{password}:
  *   get:
  *       summary: Retorna el historial de pedidos del usuario enviado por parametros
  *       tags: [Pedidos]
@@ -108,55 +103,223 @@ router.post('/', (req,res) => {
  *               description: Usuario o Contraseña incorrectos       
  * 
  */
-// Ver todos los pedido
 
-router.get('/',(req,res) => {
-    res.status(200).json(obtenerPedidos())
+router.get('/:username/:password', (req,res) => {
+    const {username, password } = req.params; 
+    const user = obtenerUsuarios().find(u => u.username === username && u.password === password);
+    if(user) return res.json(obtenerPedidosUsuario(user.id));
+    else res.status(404).json(`Index del usuario no encontrado, usuario: ${username} o contraseña: ${password} incorrectos`);
 });
 
+/** 
+ * @swagger
+ * /pedidos/borrarproducto:
+ *   delete:
+ *       summary: Borra un producto a un pedido de un usuario del sistema
+ *       tags: [Pedidos]
+ *       requestBody:
+ *           required: true
+ *           content:
+ *               application/json:
+ *                   schema:
+ *                       $ref: '#/components/schemas/eliminarProducto'
+ *       responses:
+ *           200:
+ *               description: Producto eliminado exitosamente
+ *           400:
+ *               description: Error al digitar los datos
+ *  
+ */
+router.delete('/borrarproducto', (req, res) => {
+    const { idPedido, nombre } = req.body;
+    const { user, password} = req.auth;
+    const usuario = obtenerUsuarios().find(u => u.username === user && u.password === password);
+    const indexPedido = obtenerPedidos().findIndex(u => u.idUsuario === usuario.id && u.idPedido === idPedido);
+    if(indexPedido >= 0){
+        const products = obtenerProductosPedido(indexPedido);
+        const indexProducto = products.findIndex(u => u.nombre === nombre);
+        const estadoPedido = obtenerPedidos().find(u => u.idUsuario === usuario.id && u.idPedido === idPedido).estado;
+        if(estadoPedido === "Pendiente"){
+            if(indexProducto >= 0){
+                eliminarProductoPedido(indexPedido, indexProducto);
+                res.json('Producto Eliminado');
+            }else res.status(404).json(`No se pudo eliminar el producto porque el usuario ${usuario.username}, en el pedido numero ${idPedido} no tiene un producto llamado: ${nombre}`);
+        }else res.status(400).json(`No se pudo eliminar el producto porque ya se encuentra cerrado, estado actual:  ${estadoPedido} `);
+    }else res.status(404).json(` El usuario ${usuario.username} no tiene un pedido con este id: ${idPedido}`);
+});
 
-
-//Agregar Producto nuevo en pedido de un usuario 
-
-router.post('/usuarioProducto', (req, res) => {
-    const {username, idUser, Name, pedidos} = req.body;
-    if(obtenerProducto().find(u => u.Name === Name)){
-        const producto = {Name: Name, pedidos: pedidos};
-        const usuario = obtenerUsuarios().find(u => u.username === username);
-        const idUsuarioPedido = obtenerPedidos().findIndex(u => u.idUser === idUser);
-        if(idUsuarioPedido >= 0){
-            const pedidoUser = obtenerPedidos().find(u => u.idUser === idUser);
+/** 
+ * @swagger
+ * /pedidos/editarCantidad:
+ *   put:
+ *       summary: Edita la cantidad de un producto de un usuario del sistema
+ *       tags: [Pedidos]
+ *       requestBody:
+ *           required: true
+ *           content:
+ *               application/json:
+ *                   schema:
+ *                       $ref: '#/components/schemas/editarCantidad'
+ *       responses:
+ *           200:
+ *               description: Producto agregado exitosamente
+ *           400:
+ *               description: Error al digitar los datos
+ *  
+ */
+router.put('/editarCantidad', (req, res) => {
+    const { idPedido, nombreProducto, cantidad } = req.body;
+    const { user, password} = req.auth;
+    const usuario = obtenerUsuarios().find(u => u.username === user && u.password === password);
+    const indexPedido = obtenerPedidos().findIndex(u => u.idUsuario === usuario.id && u.idPedido === idPedido);
+   
+    if(indexPedido >= 0){
+        const products = obtenerProductosPedido(indexPedido);
+        const indexProducto = products.findIndex(u => u.nombre === nombreProducto);
+        if(indexProducto >= 0){
+            const pedidoUser = obtenerPedidos().find(u => u.idUsuario === usuario.id && u.idPedido === idPedido);
             const estadoPedido = pedidoUser.estado;
             if(estadoPedido === "Pendiente"){
-                pruductoNuevoPedido(idUsuarioPedido, producto);
-                res.json('Producto agregado ');
-            } else res.json(`Este pedido no se puede editar : ${estadoPedido}`);
-        }else res.status(404).json(` El usuario ${usuario.username} no tiene un pedido con este id: ${idUser}`);
-    }else res.status(404).json(` El producto ${Name} no existe en la lista de productos`);
+                editarCantProducto(indexPedido, indexProducto, cantidad);
+                res.json('Cambios realizados satisfactoriamente');
+            }else res.json(`Este pedido no se puede editar porque ya se encuentra cerrado, el estado actual es: ${estadoPedido}`);
+        }else res.status(404).json(`No se pudo actualizar el producto porque el usuario ${usuario.username}, en el pedido numero ${idPedido} no tiene un producto llamado: ${nombreProducto}`);      
+    }else res.status(404).json(` El usuario ${usuario.username} no tiene un pedido con este id: ${idPedido}`);
+});
+
+/** 
+ * @swagger
+ * /pedidos/agregarProducto:
+ *   post:
+ *       summary: Agrega un nuevo producto a un pedido de un usuario del sistema
+ *       tags: [Pedidos]
+ *       requestBody:
+ *           required: true
+ *           content:
+ *               application/json:
+ *                   schema:
+ *                       $ref: '#/components/schemas/editarCantidad'
+ *       responses:
+ *           200:
+ *               description: Producto agregado exitosamente
+ *           400:
+ *               description: Error al digitar los datos
+ *  
+ */
+router.post('/agregarProducto', (req, res) => {
+    const { idPedido, nombreProducto, cantidad} = req.body;
+    const { user, password} = req.auth;
+    if(obtenerProducto().find(u => u.Name === nombreProducto)){
+        const producto = {nombre: nombreProducto, cantidad: cantidad};
+        const usuario = obtenerUsuarios().find(u => u.username === user && u.password === password);
+        const indexPedido = obtenerPedidos().findIndex(u => u.idUsuario === usuario.id && u.idPedido === idPedido);
+        if(indexPedido >= 0){
+            const pedidoUser = obtenerPedidos().find(u => u.idUsuario === usuario.id && u.idPedido === idPedido);
+            const estadoPedido = pedidoUser.estado;
+            if(estadoPedido === "Pendiente"){
+                agregarProducto(indexPedido, producto);
+                res.json('Producto agregado satisfactoriamente');
+            } else res.json(`Este pedido no se puede editar porque ya se encuentra cerrado, el estado actual es: ${estadoPedido}`);
+        }else res.status(404).json(` El usuario ${usuario.username} no tiene un pedido con este id: ${idPedido}`);
+    }else res.status(404).json(` El producto ${nombreProducto} no existe en la lista de productos`);
     
 });
 
-//Agregar Producto nuevo en pedido en especifico
+/** 
+ * @swagger
+ * /pedidos/cerrarPedido:
+ *   put:
+ *       summary: Cierra un pedido del sistema
+ *       tags: [Pedidos]
+ *       requestBody:
+ *           required: true
+ *           content:
+ *               application/json:
+ *                   schema:
+ *                       $ref: '#/components/schemas/cerrarPedido'
+ *       responses:
+ *           200:
+ *               description: Pedido cerrado exitosamente
+ *           400:
+ *               description: Error al digitar los datos
+ *  
+ */
+router.put('/cerrarPedido', (req, res) => {
+    const {idPedido} = req.body;
+    const userName = req.auth.user;
+    const user = obtenerUsuarios().find(u => u.username === userName);
+    if(user !== undefined){
+        const pedidoUser = obtenerPedidos().find(u => u.idUsuario === user.id && u.idPedido === idPedido); 
+        if(pedidoUser){
+            if(pedidoUser.estado !== "Pendiente") res.status(400).json(`No se pudo cerrar el pedido porque este ya se encuentra cerrado, el estado actual es: ${pedidoUser.estado}`);
+            else {
+                cambiarEstadoPedido("Confirmado", idPedido);
+                res.json('Pedido cerrado exitosamente');
+            }
+        }else res.status(400).json(`El usuario ${userName} no tiene un pedido con el id: ${idPedido}`); 
+    } else res.status(400).json(`El usuario ${userName} no existe`);
+});
 
-router.post('/pedidoProducto', (req, res) => {
-    const {direccionPedido, idPedido, Name, pedidos} = req.body;
-    if(obtenerProducto().find(u => u.Name === Name)){
-        const producto = {Name: Name, pedidos: pedidos};
-        const idUsuarioPedido = obtenerPedidos().findIndex(u => u.idPedido === idPedido);
-        if(idUsuarioPedido >= 0 && obtenerPedidos().find(u => u.direccionPedido === direccionPedido)){
-            const pedidoUser = obtenerPedidos().find(u => u.idPedido === idPedido);
-            const estadoPedido = pedidoUser.estado;
-            if(estadoPedido === "Pendiente"){
-                pruductoNuevoPedido(idUsuarioPedido, producto);
-                res.json('Producto agregado ');
-            } else res.json(`Este pedido no se puede editar : ${estadoPedido}`);
-        }else res.status(404).json(` En la direccion ${direccionPedido} no tiene un pedido con este id: ${idPedido} o esta errada`);
-    }else res.status(404).json(` El producto ${Name} no existe en la lista de productos`);
-    
+/**
+ * @swagger
+ * /pedidos/admin:
+ *  get:
+ *      summary: Obtener todos los pedidos del sistema
+ *      tags: [Pedidos]
+ *      responses:
+ *          200:
+ *              description: Lista de Pedidos del sistema organizados por usuario
+ *              content:
+ *                  application/json:
+ *                      schema:
+ *                          type: array
+ *                          items:
+ *                              $ref: '#/components/schemas/Pedido'
+ */
+router.get('/admin', autenticarAdministrador, (req,res) => { 
+    res.json(_.groupBy(obtenerPedidos(), 'idUsuario'));    
 });
 
 
-
+/** 
+ * @swagger
+ * /pedidos/admin:
+ *   put:
+ *       summary: Edita el estado de un pedido del sistema
+ *       tags: [Pedidos]
+ *       requestBody:
+ *           required: true
+ *           content:
+ *               application/json:
+ *                   schema:
+ *                       $ref: '#/components/schemas/editarEstado'
+ *       responses:
+ *           200:
+ *               description: Pedido editado exitosamente
+ *           400:
+ *               description: Error al digitar los datos
+ *  
+ */
+router.put('/admin', autenticarAdministrador, (req,res) => {
+    const {username, idPedido, estado} = req.body;
+    const user = obtenerUsuarios().find(u => u.username === username);
+    if(user){
+        const pedidosUser = obtenerPedidosUsuario(user.id); 
+        if(pedidosUser !== undefined){
+            if(estado === "Pendiente" || estado === "Confirmado" || estado === "En Preparación" || estado === "Enviado" || estado === "Entregado"){
+                if(pedidosUser === "El usuario no tiene pedidos") res.status(404).json("El usuario no tiene pedidos a los cuales editar el estado");
+                else{
+                    const indexPedido = pedidosUser.findIndex(u => u.idPedido === idPedido);
+                    if(indexPedido >= 0){
+                        cambiarEstadoPedido(estado, idPedido);
+                        res.json('Pedido editado exitosamente');
+                    }
+                    else res.status(404).json(`El usuario  no tiene algun pedido con este id: ${idPedido}`); 
+                }
+            }else res.status(400).json('Error, el estado debe ser alguno de los siguientes: Pendiente, Confirmado, En Preparación, Enviado, Entregado ');
+        }else res.status(404).json(`No existe el usuario ${username}`);    
+    }else res.status(400).json(`El usuario ${username} no existe`);
+});
 
 /**
  * @swagger
@@ -168,10 +331,10 @@ router.post('/pedidoProducto', (req, res) => {
  *      Pedido:
  *          type: object
  *          required:
- *              -carrito 
- *              -nombreMedioPago 
+ *              -pedido 
+ *              -MedioPago 
  *          properties:
- *              idPedidosUsuario:
+ *              idUsuario:
  *                  type: integer
  *                  description: Id de general que identifica a todos los pedidos del usuario
  *              idPedido:
@@ -186,36 +349,36 @@ router.post('/pedidoProducto', (req, res) => {
  *              medioPago:
  *                  type: string
  *                  description: Forma en la que el usuario paga el pedido realizado
- *              carrito:
+ *              pedido:
  *                  type: array
  *                  description: Array de productos que se agregaran al pedido
  *          example:
- *              idPedidosUsuario: 1
+ *              idUsuario: 1
  *              idPedido: 4
  *              estado: Entregado
- *              direccion: Torices, Carrera 14 #41-32
- *              medioPago: Cheque en Blanco
- *              carrito: [{ "nombre": "Hamburguesa Doble", "cantidad": 1}]
+ *              direccion: Cartagena
+ *              medioPago: Efectivo
+ *              pedido: [{ "nombre": "Hamburguesa Doble", "cantidad": 1}]
  *      agregarPedido:
  *          type: object
  *          required:
  *              -username
- *              -carrito 
- *              -nombreMedioPago
+ *              -pedido 
+ *              -MedioPago
  *          properties:
  *              username:
  *                  type: string
  *                  description: Nombre del usuario
- *              carrito:
+ *              pedido:
  *                  type: array
  *                  description: Array de productos que se agregaran al pedido
- *              nombreMedioPago:
+ *              MedioPago:
  *                  type: string
  *                  description: Medio de pago con el cual se cancelara el pedido
  *          example:
- *              username: Decstro
- *              carrito: [{ "nombre": "Hamburguesa Doble", "cantidad": 1}]
- *              nombreMedioPago: Cheque en Blanco
+ *              username: Natan
+ *              pedido: [{ "nombre": "Hamburguesa Doble", "cantidad": 1}]
+ *              MedioPago: Efectivo
  *      eliminarProducto:
  *          type: object
  *          required: 
@@ -229,8 +392,8 @@ router.post('/pedidoProducto', (req, res) => {
  *                  type: string
  *                  description: Nombre del producto a eliminar   
  *          example:
- *              idPedido: 1
- *              nombre: Lomo de Cerdo
+ *              idPedido: 0
+ *              nombre: Lomo
  *      editarCantidad:
  *          type: object
  *          required: 
@@ -248,9 +411,9 @@ router.post('/pedidoProducto', (req, res) => {
  *                  type: integer
  *                  description: La cantidad del producto
  *          example:
- *              idPedido: 1
- *              nombreProducto: Lomo de Cerdo
- *              cantidad: 5
+ *              idPedido: 0
+ *              nombreProducto: Lomo
+ *              cantidad: 4
  *      cerrarPedido:
  *          type: object
  *          required:
@@ -278,10 +441,11 @@ router.post('/pedidoProducto', (req, res) => {
  *                  type: string
  *                  description: Nuevo estado del pedido
  *          example:
- *              username: Decstro
+ *              username: Natan
  *              idPedido: 0
  *              estado: Enviado                
  */
 
 
 module.exports = router;
+
