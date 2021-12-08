@@ -152,7 +152,7 @@ router.delete('/borrarproducto', (req, res) => {
  * @swagger
  * /pedidos/editarCantidad:
  *   put:
- *       summary: Edita la cantidad de un producto de un usuario del sistema
+ *       summary: Editar la cantidad de un producto de un usuario del sistema
  *       tags: [Pedidos]
  *       requestBody:
  *           required: true

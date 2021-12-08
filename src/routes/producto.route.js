@@ -224,7 +224,7 @@ router.delete('/:id', (req, res) => {
  *                  description: Precio del producto
  *          example:
  *              id: 003
- *              Name: Burguer2
+ *              Name: Hamburguesa Doble
  *              price : 50000
  * 
  * 
