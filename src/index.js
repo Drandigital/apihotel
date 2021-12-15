@@ -5,6 +5,7 @@ const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUI = require('swagger-ui-express');
 
 
+const {dbConnection} = require('./config/db.js');
 
 app.set('port', process.env.PORT || 3000, "192.168.0.107");
 
@@ -15,6 +16,7 @@ const pedidosRoutes = require('./routes/pedido.route');
 const productoRoutes = require('./routes/producto.route');
 const mediosRoutes = require('./routes/medioPago.route');
 const loginRoutes = require('./routes/login.route');
+dbConnection();
 
 
 
@@ -30,6 +32,7 @@ app.use('/usuarios', usuarioRoutes);
 app.use('/pedidos', pedidosRoutes);
 app.use('/producto', productoRoutes);
 app.use('/medios', mediosRoutes)
+
 
 
 

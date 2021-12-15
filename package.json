@@ -4,11 +4,21 @@
   "description": "Proyecto en el cual podrás como administrador de un restaurante, agregar, modificar o quitar productos, ver los pedidos de tus clientes y modificar sus estados para organizarlos conforme se vayan preparando y como usuario podrás ver los productos disponibles, crear una cuenta, agregar o quitar productos de tu pedido, elegir medios de pago, especificar la dirección de entrega de tu pedido .",
   "main": "index.js",
   "dependencies": {
+    "bcrypt": "^5.0.1",
+    "chai": "^4.3.4",
+    "chai-http": "^4.3.0",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "express-basic-auth": "^1.2.0",
+    "express-jwt": "^6.1.0",
+    "helmet": "^4.6.0",
+    "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.21",
-    "swagger-jsdoc": "^6.1.0",
+    "mocha": "^9.1.1",
+    "mongoose": "^5.13.5",
+    "nodemon": "^2.0.12",
+    "redis": "^3.1.2",
+    "swagger-jsdoc": "^6.0.0",
     "swagger-ui-express": "^4.1.6"
   },
   "scripts": {
