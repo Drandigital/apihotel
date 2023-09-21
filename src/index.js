@@ -1,45 +1,51 @@
+require('dotenv').config();
 const express = require('express');
-const app = express();
-const basicAuth = require('express-basic-auth');
+const helmet = require('helmet');
+require('./db');
+
+
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUI = require('swagger-ui-express');
-
-
-const {dbConnection} = require('./config/db.js');
-
-app.set('port', process.env.PORT || 3000, "192.168.0.107");
-
-const autenticacion = require('./middlewares/Autenticacion.middleware');
+const expressJwt = require('express-jwt');
 const swaggerOptions = require('./utils/swaggerOptions');
-const usuarioRoutes = require('./routes/usuario.route');
-const pedidosRoutes = require('./routes/pedido.route');
-const productoRoutes = require('./routes/producto.route');
-const mediosRoutes = require('./routes/medioPago.route');
-const loginRoutes = require('./routes/login.route');
-dbConnection();
+const rutasHotel = require('./routes/hotel.routes');
+const rutasHabitacion = require('./routes/room.routes');
+const rutasReserva = require('./routes/reservation.routes');
+const middlewareAutenticacion = require('./middlewares/auth.middlewares');
 
 
+const app = express();
+exports.app = app;
+app.use(helmet());
+const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
 
 const swaggerSpecs = swaggerJsDoc(swaggerOptions);
 
+app.use('/hotel', rutasHotel);
+
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpecs));
 
-app.use('/login', loginRoutes);
-app.use(basicAuth({ authorizer: autenticacion }));
-app.use('/usuarios', usuarioRoutes);
-app.use('/pedidos', pedidosRoutes);
-app.use('/producto', productoRoutes);
-app.use('/medios', mediosRoutes)
+
+ 
+ 
+
+
+// middlewares
+// app.use(middlewareAutenticacion.autenticar);
 
 
 
 
+// Establecer las rutas
+app.use('/hoteles', rutasHotel);
+app.use('/habitaciones', rutasHabitacion);
+app.use('/reservas', rutasReserva);
 
-app.listen(app.get('port'), () => {
-    console.log('Escuchando en el Puerto ', app.get('port'));
-  }
-);
-  
+
+
+
+app.listen(PORT, () => { console.log(`Escuchando desde el puerto:  http://localhost:${PORT}`); });
+
+module.exports = app;
 
